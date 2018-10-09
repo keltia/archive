@@ -121,6 +121,10 @@ func NewGzipfile(fn string) (*Gzip, error) {
 
 // Extract returns the content of the file
 func (a Gzip) Extract(t string) ([]byte, error) {
+    ext := filepath.Ext(a.unc)
+    if t != ext {
+        return []byte{}, fmt.Errorf("bad filetype %s", t)
+    }
 	buf, err := ioutil.ReadFile(a.fn)
 	if err != nil {
 		return []byte{}, errors.Wrap(err, "gzip/extract")
