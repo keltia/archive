@@ -8,6 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestVersion(t *testing.T) {
+	require.Equal(t, myVersion, Version())
+}
+
 func TestSetVerbose(t *testing.T) {
 	assert.False(t, fVerbose)
 	SetVerbose()

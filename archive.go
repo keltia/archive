@@ -13,6 +13,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	myVersion = "0.1.0"
+)
+
 var (
 	fVerbose = false
 	fDebug = false
@@ -24,6 +28,10 @@ func SetVerbose() {
 
 func SetDebug() {
 	fDebug = true
+}
+
+func Version() string {
+	return myVersion
 }
 
 // Extracter is the main interface we have
