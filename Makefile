@@ -13,7 +13,7 @@ OPTS=	-ldflags="-s -w" -v
 all: build
 
 build: ${SRCS}
-	${GO} build -o ${BIN} ${OPTS} .
+	${GO} build ${OPTS} .
 
 test:
 	${GO} test -v .
