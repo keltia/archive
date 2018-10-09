@@ -22,14 +22,17 @@ var (
 	fDebug   = false
 )
 
+// SetVerbose sets the mode
 func SetVerbose() {
 	fVerbose = true
 }
 
+// SetDebug sets the mode too
 func SetDebug() {
 	fDebug = true
 }
 
+// Version reports it
 func Version() string {
 	return myVersion
 }
