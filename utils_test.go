@@ -9,7 +9,7 @@ func TestVerbose_No(t *testing.T) {
 }
 
 func TestVerbose_Yes(t *testing.T) {
-	fVerbose = true
+	SetVerbose()
 	verbose("yes")
 	fVerbose = false
 }
@@ -19,7 +19,7 @@ func TestDebug_No(t *testing.T) {
 }
 
 func TestDebug_Yes(t *testing.T) {
-	fVerbose = true
-	verbose("yes")
-	fVerbose = false
+	SetDebug()
+	debug("yes")
+	fDebug = false
 }
