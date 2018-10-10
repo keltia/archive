@@ -200,7 +200,8 @@ func (a Gpg) Extract(t string) ([]byte, error) {
 
 	var buf bytes.Buffer
 
-	a.snd.Run(func() error {
+	// Store the decrypted file in a sandbox
+	err = a.snd.Run(func() error {
 		// Do the decryption thing
 		plain, err := a.gpg.Decrypt(fh)
 		if err != nil {
