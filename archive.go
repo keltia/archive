@@ -167,7 +167,8 @@ func (Gpgme) Decrypt(r io.Reader) (*gpgme.Data, error) {
 type NullGPG struct{}
 
 func (NullGPG) Decrypt(r io.Reader) (*gpgme.Data, error) {
-	return &gpgme.Data{}, nil
+	b, _ := ioutil.ReadAll(r)
+	return gpgme.NewDataBytes(b)
 }
 
 type Gpg struct {
