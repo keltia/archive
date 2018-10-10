@@ -1,19 +1,19 @@
 package archive
 
 import (
-    "archive/zip"
-    "bytes"
-    "compress/gzip"
-    "fmt"
-    "io"
-    "io/ioutil"
-    "os"
-    "path"
-    "path/filepath"
-    "strings"
+	"archive/zip"
+	"bytes"
+	"compress/gzip"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
 
-    "github.com/pkg/errors"
-    "github.com/proglottis/gpgme"
+	"github.com/pkg/errors"
+	"github.com/proglottis/gpgme"
 )
 
 const (
@@ -235,4 +235,27 @@ func New(fn string) (ExtractCloser, error) {
 		return NewGpgfile(fn)
 	}
 	return &Plain{fn}, nil
+}
+
+const (
+	archivePlain = 1 << iota
+	archiveGzip
+	archiveZip
+	ArchiveTar
+	archiveGpg
+)
+
+func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
+	fn := "-"
+	switch t {
+	case archivePlain:
+		return &Plain{fn}, nil
+	case archiveGzip:
+		return NewGzipfile(fn)
+	case archiveZip:
+		return NewZipfile(fn)
+	case archiveGpg:
+		return NewGpgfile(fn)
+	}
+	return &Plain{fn}, fmt.Errorf("unknown type")
 }
