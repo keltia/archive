@@ -2,9 +2,11 @@ package archive
 
 import (
 	"archive/zip"
+	"bufio"
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"path"
 	"path/filepath"
@@ -161,4 +163,19 @@ func New(fn string) (ExtractCloser, error) {
 		return NewGzipfile(fn)
 	}
 	return &Plain{fn}, nil
+}
+
+type Reader struct {
+	e ExtractCloser
+	r io.Reader
+}
+
+func NewReader(r io.ReadCloser) (*Reader, error) {
+	a := new(Reader)
+	a.r = bufio.NewReader(r)
+	return a, nil
+}
+
+func (r Reader) Read(p []byte) (int, error) {
+	return r.Read(p)
 }
