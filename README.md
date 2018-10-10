@@ -23,13 +23,18 @@ is enough to fetch, build and install.
 
 * Go >= 1.10
 
-Only standard Go modules are used.
+Only standard Go modules are used.  I use Semantic Versioning for all my modules.
 
 # Usage
 
 SYNOPSIS
 ```
+XXX FIXME
 ```
+
+# Limitations
+
+I wrote this both to simplify and my own code in `dmarc-cat` (that's also how `sandbox`got created) and to play with interfaces.  It is currently only trying to extract one file at a time matching the extension provided.  It will probably evolve into a more general code later.
 
 # Tests
 
