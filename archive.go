@@ -1,20 +1,19 @@
 package archive
 
 import (
-	"archive/zip"
-	"bytes"
-	"compress/gzip"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
+    "archive/zip"
+    "bytes"
+    "compress/gzip"
+    "fmt"
+    "io"
+    "io/ioutil"
+    "os"
+    "path"
+    "path/filepath"
+    "strings"
 
-	"github.com/keltia/sandbox"
-	"github.com/pkg/errors"
-	"github.com/proglottis/gpgme"
+    "github.com/pkg/errors"
+    "github.com/proglottis/gpgme"
 )
 
 const (
@@ -152,7 +151,7 @@ func (a Gzip) Close() error {
 	return nil
 }
 
-// Gpg
+// gpg
 
 type Decrypter interface {
 	Decrypt(r io.Reader) (*gpgme.Data, error)
@@ -175,7 +174,6 @@ type Gpg struct {
 	fn  string
 	unc string
 	gpg Decrypter
-	snd *sandbox.Dir
 }
 
 func NewGpgfile(fn string) (*Gpg, error) {
@@ -183,12 +181,8 @@ func NewGpgfile(fn string) (*Gpg, error) {
 	base := filepath.Base(fn)
 	pc := strings.Split(base, ".")
 	unc := strings.Join(pc[0:len(pc)-1], ".")
-	snd, err := sandbox.New("archive")
-	if err != nil {
-		return &Gpg{}, errors.Wrap(err, "extract/sandbox")
-	}
 
-	return &Gpg{fn: fn, unc: unc, snd: snd}, nil
+	return &Gpg{fn: fn, unc: unc, gpg: Gpgme{}}, nil
 }
 
 func (a Gpg) Extract(t string) ([]byte, error) {
@@ -201,31 +195,27 @@ func (a Gpg) Extract(t string) ([]byte, error) {
 
 	var buf bytes.Buffer
 
-	// Store the decrypted file in a sandbox
-	err = a.snd.Run(func() error {
-		// Do the decryption thing
-		plain, err := a.gpg.Decrypt(fh)
-		if err != nil {
-			return errors.Wrap(err, "extract/decrypt")
-		}
-		defer plain.Close()
+	// Do the decryption thing
+	plain, err := a.gpg.Decrypt(fh)
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "extract/decrypt")
+	}
+	defer plain.Close()
 
-		// Save "plain" text
+	// Save "plain" text
 
-		verbose("Decrypting %s", a.fn)
+	verbose("Decrypting %s", a.fn)
 
-		_, err = io.Copy(&buf, plain)
-		if err != nil {
-			return errors.Wrap(err, "decryptFile/Copy")
-		}
-		return nil
-	})
+	_, err = io.Copy(&buf, plain)
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "extract/copy")
+	}
 
 	return buf.Bytes(), err
 }
 
 func (a Gpg) Close() error {
-	return a.snd.Cleanup()
+	return nil
 }
 
 // New is the main creator
