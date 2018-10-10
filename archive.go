@@ -2,17 +2,19 @@ package archive
 
 import (
 	"archive/zip"
-	"bufio"
 	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/keltia/sandbox"
 	"github.com/pkg/errors"
+	"github.com/proglottis/gpgme"
 )
 
 const (
@@ -150,6 +152,80 @@ func (a Gzip) Close() error {
 	return nil
 }
 
+// Gpg
+
+type Decrypter interface {
+	Decrypt(r io.Reader) (*gpgme.Data, error)
+}
+
+type Gpgme struct{}
+
+func (Gpgme) Decrypt(r io.Reader) (*gpgme.Data, error) {
+	return gpgme.Decrypt(r)
+}
+
+type NullGPG struct{}
+
+func (NullGPG) Decrypt(r io.Reader) (*gpgme.Data, error) {
+	return &gpgme.Data{}, nil
+}
+
+type Gpg struct {
+	fn  string
+	unc string
+	gpg Decrypter
+	snd *sandbox.Dir
+}
+
+func NewGpgfile(fn string) (*Gpg, error) {
+	// Strip .gpg or .asc from filename
+	base := filepath.Base(fn)
+	pc := strings.Split(base, ".")
+	unc := strings.Join(pc[0:len(pc)-1], ".")
+	snd, err := sandbox.New("archive")
+	if err != nil {
+		return &Gpg{}, errors.Wrap(err, "extract/sandbox")
+	}
+
+	return &Gpg{fn: fn, unc: unc, snd: snd}, nil
+}
+
+func (a Gpg) Extract(t string) ([]byte, error) {
+	// Carefully open the box
+	fh, err := os.Open(a.fn)
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "extract/open")
+	}
+	defer fh.Close()
+
+	var buf bytes.Buffer
+
+	a.snd.Run(func() error {
+		// Do the decryption thing
+		plain, err := a.gpg.Decrypt(fh)
+		if err != nil {
+			return errors.Wrap(err, "extract/decrypt")
+		}
+		defer plain.Close()
+
+		// Save "plain" text
+
+		verbose("Decrypting %s", a.fn)
+
+		_, err = io.Copy(&buf, plain)
+		if err != nil {
+			return errors.Wrap(err, "decryptFile/Copy")
+		}
+		return nil
+	})
+
+	return buf.Bytes(), err
+}
+
+func (a Gpg) Close() error {
+	return a.snd.Cleanup()
+}
+
 // New is the main creator
 func New(fn string) (ExtractCloser, error) {
 	if fn == "" {
@@ -161,21 +237,10 @@ func New(fn string) (ExtractCloser, error) {
 		return NewZipfile(fn)
 	case ".gz":
 		return NewGzipfile(fn)
+	case ".asc":
+		fallthrough
+	case ".gpg":
+		return NewGpgfile(fn)
 	}
 	return &Plain{fn}, nil
-}
-
-type Reader struct {
-	e ExtractCloser
-	r io.Reader
-}
-
-func NewReader(r io.ReadCloser) (*Reader, error) {
-	a := new(Reader)
-	a.r = bufio.NewReader(r)
-	return a, nil
-}
-
-func (r Reader) Read(p []byte) (int, error) {
-	return r.Read(p)
 }

@@ -1,9 +1,14 @@
 package archive
 
 import (
+	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"testing"
 
+	"github.com/keltia/sandbox"
+	"github.com/proglottis/gpgme"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -183,4 +188,72 @@ func TestGzip_Close(t *testing.T) {
 	require.NotNil(t, a)
 
 	require.NoError(t, a.Close())
+}
+
+// Gpg
+
+type NullGPGError struct{}
+
+var ErrFakeGPGError = fmt.Errorf("fake error")
+
+func (NullGPGError) Decrypt(r io.Reader) (*gpgme.Data, error) {
+	return &gpgme.Data{}, ErrFakeGPGError
+}
+
+func TestNullGPG_Decrypt(t *testing.T) {
+	fVerbose = true
+
+	snd, err := sandbox.New("test")
+	require.NoError(t, err)
+	defer snd.Cleanup()
+
+	gpg := NullGPG{}
+
+	file := "testdata/CIMBL-0666-CERTS.zip.asc"
+	fh, err := os.Open(file)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	plain, err := gpg.Decrypt(fh)
+	assert.NoError(t, err)
+	assert.Empty(t, plain)
+}
+
+func TestNullGPGError_Decrypt(t *testing.T) {
+	fVerbose = true
+
+	snd, err := sandbox.New("test")
+	require.NoError(t, err)
+	defer snd.Cleanup()
+
+	gpg := NullGPGError{}
+
+	file := "testdata/CIMBL-0666-CERTS.zip.asc"
+	fh, err := os.Open(file)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	plain, err := gpg.Decrypt(fh)
+	assert.Error(t, err)
+	assert.Equal(t, ErrFakeGPGError, err)
+	assert.Empty(t, plain)
+}
+
+func TestGpg_Decrypt(t *testing.T) {
+	fVerbose = true
+
+	snd, err := sandbox.New("test")
+	require.NoError(t, err)
+	defer snd.Cleanup()
+
+	gpg := Gpgme{}
+
+	file := "testdata/CIMBL-0666-CERTS.zip.asc"
+	fh, err := os.Open(file)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	plain, err := gpg.Decrypt(fh)
+	assert.Error(t, err)
+	assert.NotEmpty(t, plain)
 }
