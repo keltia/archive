@@ -197,7 +197,9 @@ type NullGPGError struct{}
 var ErrFakeGPGError = fmt.Errorf("fake error")
 
 func (NullGPGError) Decrypt(r io.Reader) (*gpgme.Data, error) {
-	return &gpgme.Data{}, ErrFakeGPGError
+	b, _ := ioutil.ReadAll(r)
+	gb, _ := gpgme.NewDataBytes(b)
+	return gb, ErrFakeGPGError
 }
 
 func TestNullGPG_Decrypt(t *testing.T) {
