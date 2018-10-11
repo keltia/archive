@@ -23,13 +23,47 @@ is enough to fetch, build and install.
 
 * Go >= 1.10
 
-Only standard Go modules are used.
+Only standard Go modules are used.  I use Semantic Versioning for all my modules.
 
 # Usage
 
+The module currently supports the following "archives":
+
+- plain text
+- gzip files (one file per stream, only first stream)
+- zip files
+- GPG files (either .asc or .gpg)
+
 SYNOPSIS
+``` go
+    a, err := archive.New("foo.txt")
+    content, err := a.Extract(".txt")
+    
+    a, err := archive.New("bar.zip")
+    content, err := a.Extract(".txt")       // extract the first .txt file
+    
+    a, err := archive.New("baz.txt.gz")
+    content, err := a.Extract(".txt")       // extracts baz.txt
+    
+    // Gpg is a bit special
+    a, err := archive.New("xyz.zip.asc")
+    unencrypted, err := a.Extract(".zip")   // decrypt into variable
+                                            // if you want to use archive.New() there too
+                                            // you need to save into a temp file.
+    var buf bytes.Buffer
+    
+    fmt.Fprintf(&buf, "%s", unencrypted)                                        
+    fh, err := os.Create("xyz.zip")
+    _, err := io.Copy(fh, &buf)
+    fh.Close()
+    
+    a1, err := archive.New("xyz.zip")
+    ...               
 ```
-```
+
+# Limitations
+
+I wrote this both to simplify and my own code in `dmarc-cat` (that's also how `sandbox` got created) and to play with interfaces.  It is currently only trying to extract one file at a time matching the extension provided.  It will probably evolve into a more general code later.
 
 # Tests
 
