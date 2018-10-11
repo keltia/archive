@@ -39,8 +39,13 @@ func TestNewArchive_Empty(t *testing.T) {
 	assert.IsType(t, (*Plain)(nil), a)
 }
 
+func TestNewArchive_None(t *testing.T) {
+	_, err := New("foo.txt")
+	require.Error(t, err)
+}
+
 func TestNewArchive_Plain(t *testing.T) {
-	a, err := New("foo.txt")
+	a, err := New("testdata/empty.txt")
 	require.NoError(t, err)
 	assert.NotEmpty(t, a)
 	assert.IsType(t, (*Plain)(nil), a)
@@ -55,22 +60,20 @@ func TestNewArchive_Zip(t *testing.T) {
 }
 
 func TestNewArchive_ZipNone(t *testing.T) {
-	a, err := New("foo.zip")
+	a, err := New("testdata/foo.zip")
 	require.Error(t, err)
 	assert.Empty(t, a)
-	assert.IsType(t, (*Zip)(nil), a)
-
 }
 
 func TestNewArchive_Gzip(t *testing.T) {
-	a, err := New("foo.gz")
+	a, err := New("testdata/notempty.txt.gz")
 	require.NoError(t, err)
 	assert.NotEmpty(t, a)
 	assert.IsType(t, (*Gzip)(nil), a)
 }
 
 func TestNew_Gpg(t *testing.T) {
-	a, err := New("foo.asc")
+	a, err := New("testdata/notempty.asc")
 	require.NoError(t, err)
 	assert.NotEmpty(t, a)
 	assert.IsType(t, (*Gpg)(nil), a)
@@ -180,12 +183,8 @@ func TestGzip_Extract2(t *testing.T) {
 func TestGzip_Extract3(t *testing.T) {
 	fn := "/nonexistent"
 	a, err := New(fn)
-	require.NoError(t, err)
-	require.NotNil(t, a)
-
-	txt, err := a.Extract(".txt")
-	assert.Error(t, err)
-	assert.Empty(t, txt)
+	require.Error(t, err)
+	require.Empty(t, a)
 }
 
 func TestGzip_Close(t *testing.T) {
@@ -310,7 +309,29 @@ func TestGpg_Close(t *testing.T) {
 	require.NoError(t, a.Close())
 }
 
-func TestNewFromReader(t *testing.T) {
+func TestNewFromReader_Nil(t *testing.T) {
+	a, err := NewFromReader(nil, ArchivePlain)
+	assert.Error(t, err)
+	assert.Empty(t, a)
+}
+
+func TestNewFromReader_Plain(t *testing.T) {
+	cipher, err := ioutil.ReadFile("testdata/notempty.txt")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, cipher)
+
+	var buf bytes.Buffer
+
+	n, err := buf.Write(cipher)
+	assert.NoError(t, err)
+	assert.Equal(t, len(cipher), n)
+
+	a, err := NewFromReader(&buf, ArchivePlain)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, a)
+}
+
+func TestNewFromReader_Gpg(t *testing.T) {
 	cipher, err := ioutil.ReadFile("testdata/notempty.asc")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, cipher)
@@ -322,6 +343,38 @@ func TestNewFromReader(t *testing.T) {
 	assert.Equal(t, len(cipher), n)
 
 	a, err := NewFromReader(&buf, ArchiveGpg)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, a)
+}
+
+func TestNewFromReader_Zip(t *testing.T) {
+	file, err := ioutil.ReadFile("testdata/notempty.zip")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, file)
+
+	var buf bytes.Buffer
+
+	n, err := buf.Write(file)
+	assert.NoError(t, err)
+	assert.Equal(t, len(file), n)
+
+	a, err := NewFromReader(&buf, ArchiveZip)
+	assert.Error(t, err)
+	assert.Empty(t, a)
+}
+
+func TestNewFromReader_Gzip(t *testing.T) {
+	file, err := ioutil.ReadFile("testdata/notempty.txt.gz")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, file)
+
+	var buf bytes.Buffer
+
+	n, err := buf.Write(file)
+	assert.NoError(t, err)
+	assert.Equal(t, len(file), n)
+
+	a, err := NewFromReader(&buf, ArchiveGzip)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, a)
 }
