@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -307,4 +308,20 @@ func TestGpg_Close(t *testing.T) {
 
 	a := &Gpg{fn: fn, unc: "notempty.txt", gpg: NullGPG{}}
 	require.NoError(t, a.Close())
+}
+
+func TestNewFromReader(t *testing.T) {
+	cipher, err := ioutil.ReadFile("testdata/notempty.asc")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, cipher)
+
+	var buf bytes.Buffer
+
+	n, err := buf.Write(cipher)
+	assert.NoError(t, err)
+	assert.Equal(t, len(cipher), n)
+
+	a, err := NewFromReader(&buf, ArchiveGpg)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, a)
 }
