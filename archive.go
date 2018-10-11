@@ -238,23 +238,23 @@ func New(fn string) (ExtractCloser, error) {
 }
 
 const (
-	archivePlain = 1 << iota
-	archiveGzip
-	archiveZip
+	ArchivePlain = 1 << iota
+	ArchiveGzip
+	ArchiveZip
 	ArchiveTar
-	archiveGpg
+	ArchiveGpg
 )
 
 func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 	fn := "-"
 	switch t {
-	case archivePlain:
+	case ArchivePlain:
 		return &Plain{fn}, nil
-	case archiveGzip:
+	case ArchiveGzip:
 		return NewGzipfile(fn)
-	case archiveZip:
+	case ArchiveZip:
 		return NewZipfile(fn)
-	case archiveGpg:
+	case ArchiveGpg:
 		return NewGpgfile(fn)
 	}
 	return &Plain{fn}, fmt.Errorf("unknown type")
