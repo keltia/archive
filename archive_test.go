@@ -39,8 +39,13 @@ func TestNewArchive_Empty(t *testing.T) {
 	assert.IsType(t, (*Plain)(nil), a)
 }
 
+func TestNewArchive_None(t *testing.T) {
+	_, err := New("foo.txt")
+	require.Error(t, err)
+}
+
 func TestNewArchive_Plain(t *testing.T) {
-	a, err := New("foo.txt")
+	a, err := New("testdata/empty.txt")
 	require.NoError(t, err)
 	assert.NotEmpty(t, a)
 	assert.IsType(t, (*Plain)(nil), a)
@@ -55,22 +60,20 @@ func TestNewArchive_Zip(t *testing.T) {
 }
 
 func TestNewArchive_ZipNone(t *testing.T) {
-	a, err := New("foo.zip")
+	a, err := New("testdata/foo.zip")
 	require.Error(t, err)
 	assert.Empty(t, a)
-	assert.IsType(t, (*Zip)(nil), a)
-
 }
 
 func TestNewArchive_Gzip(t *testing.T) {
-	a, err := New("foo.gz")
+	a, err := New("testdata/notempty.txt.gz")
 	require.NoError(t, err)
 	assert.NotEmpty(t, a)
 	assert.IsType(t, (*Gzip)(nil), a)
 }
 
 func TestNew_Gpg(t *testing.T) {
-	a, err := New("foo.asc")
+	a, err := New("testdata/notempty.asc")
 	require.NoError(t, err)
 	assert.NotEmpty(t, a)
 	assert.IsType(t, (*Gpg)(nil), a)
@@ -180,12 +183,8 @@ func TestGzip_Extract2(t *testing.T) {
 func TestGzip_Extract3(t *testing.T) {
 	fn := "/nonexistent"
 	a, err := New(fn)
-	require.NoError(t, err)
-	require.NotNil(t, a)
-
-	txt, err := a.Extract(".txt")
-	assert.Error(t, err)
-	assert.Empty(t, txt)
+	require.Error(t, err)
+	require.Empty(t, a)
 }
 
 func TestGzip_Close(t *testing.T) {

@@ -223,6 +223,10 @@ func New(fn string) (ExtractCloser, error) {
 	if fn == "" {
 		return &Plain{}, fmt.Errorf("null string")
 	}
+	_, err := os.Stat(fn)
+	if err != nil {
+		return nil, errors.Wrap(err, "unknown file")
+	}
 	ext := filepath.Ext(fn)
 	switch ext {
 	case ".zip":
