@@ -250,6 +250,9 @@ const (
 )
 
 func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
+	if r == nil {
+		return nil, fmt.Errorf("nil reader")
+	}
 	fn := "-"
 	switch t {
 	case ArchivePlain:
@@ -257,7 +260,7 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 	case ArchiveGzip:
 		return NewGzipfile(fn)
 	case ArchiveZip:
-		return NewZipfile(fn)
+		return nil, fmt.Errorf("not supported")
 	case ArchiveGpg:
 		return NewGpgfile(fn)
 	}
