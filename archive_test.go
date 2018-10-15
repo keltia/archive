@@ -29,7 +29,9 @@ func TestSetDebug(t *testing.T) {
 	assert.False(t, fDebug)
 	SetDebug()
 	assert.True(t, fDebug)
+	assert.True(t, fVerbose)
 	fDebug = false
+	fVerbose = false
 }
 
 func TestReset(t *testing.T) {
