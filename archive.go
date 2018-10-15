@@ -32,7 +32,14 @@ func SetVerbose() {
 
 // SetDebug sets the mode too
 func SetDebug() {
-	fDebug = true
+	fDebug   = true
+	fVerbose = true
+}
+
+// Reset is for the two flags
+func Reset() {
+	fDebug   = false
+	fVerbose = false
 }
 
 // Version reports it

@@ -32,6 +32,12 @@ func TestSetDebug(t *testing.T) {
 	fDebug = false
 }
 
+func TestReset(t *testing.T) {
+	fVerbose = true
+	Reset()
+	require.False(t, fVerbose)
+}
+
 func TestNewArchive_Empty(t *testing.T) {
 	a, err := New("")
 	require.Error(t, err)
