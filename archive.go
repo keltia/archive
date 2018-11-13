@@ -160,29 +160,36 @@ func (a Gzip) Close() error {
 
 // gpg
 
+// Decrypter is the gpgme interface
 type Decrypter interface {
 	Decrypt(r io.Reader) (*gpgme.Data, error)
 }
 
+// Gpgme is for real gpgme stuff
 type Gpgme struct{}
 
+// Decrypt does the obvious
 func (Gpgme) Decrypt(r io.Reader) (*gpgme.Data, error) {
 	return gpgme.Decrypt(r)
 }
 
+// NullGPG is for testing
 type NullGPG struct{}
 
+// Decrypt does the obvious
 func (NullGPG) Decrypt(r io.Reader) (*gpgme.Data, error) {
 	b, _ := ioutil.ReadAll(r)
 	return gpgme.NewDataBytes(b)
 }
 
+// Gpg is how we use/mock decryption stuff
 type Gpg struct {
 	fn  string
 	unc string
 	gpg Decrypter
 }
 
+// NewGpgfile initializes the struct and check filename
 func NewGpgfile(fn string) (*Gpg, error) {
 	// Strip .gpg or .asc from filename
 	base := filepath.Base(fn)
@@ -192,6 +199,7 @@ func NewGpgfile(fn string) (*Gpg, error) {
 	return &Gpg{fn: fn, unc: unc, gpg: Gpgme{}}, nil
 }
 
+// Extract binds it to the Archiver interface
 func (a Gpg) Extract(t string) ([]byte, error) {
 	// Carefully open the box
 	fh, err := os.Open(a.fn)
@@ -221,6 +229,7 @@ func (a Gpg) Extract(t string) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
+// Close is part of the Closer interface
 func (a Gpg) Close() error {
 	return nil
 }
@@ -249,13 +258,19 @@ func New(fn string) (ExtractCloser, error) {
 }
 
 const (
+	// ArchivePlain starts the different types
 	ArchivePlain = 1 << iota
+	// ArchiveGzip is for gzip archives
 	ArchiveGzip
+	// ArchiveZip is for zip archives
 	ArchiveZip
+	// ArchiveTar describes the tar ones
 	ArchiveTar
+	// ArchiveGpg is for openpgp archives
 	ArchiveGpg
 )
 
+// NewFromReader uses an io.Reader instead of a file
 func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 	if r == nil {
 		return nil, fmt.Errorf("nil reader")
