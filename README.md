@@ -58,7 +58,13 @@ SYNOPSIS
     fh.Close()
     
     a1, err := archive.New("xyz.zip")
-    ...               
+    ...
+    You can have more verbose output and debug by using these functions:
+    
+    archive.SetVerbose()
+    archive.SetDebug()      // implies verbose
+    ...
+    archive.Reset()         // both flags are cleared
 ```
 
 # Limitations

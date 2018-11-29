@@ -24,6 +24,10 @@ install: ${BIN}
 clean:
 	${GO} clean -v
 
+# use github.com/mgechev/revive
+lint:
+	revive
+
 push:
 	git push --all
 	git push --tags

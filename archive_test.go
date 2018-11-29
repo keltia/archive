@@ -29,7 +29,15 @@ func TestSetDebug(t *testing.T) {
 	assert.False(t, fDebug)
 	SetDebug()
 	assert.True(t, fDebug)
+	assert.True(t, fVerbose)
 	fDebug = false
+	fVerbose = false
+}
+
+func TestReset(t *testing.T) {
+	fVerbose = true
+	Reset()
+	require.False(t, fVerbose)
 }
 
 func TestNewArchive_Empty(t *testing.T) {
