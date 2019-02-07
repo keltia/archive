@@ -310,6 +310,21 @@ func TestGpg_Extract3(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestGpg_Extract4(t *testing.T) {
+	fn := "testdata/notempty.zip.asc"
+
+	a := &Gpg{fn: fn, unc: "notempty.zip", gpg: NullGPG{}}
+	defer a.Close()
+
+	rh, err := ioutil.ReadFile("testdata/notempty.zip")
+	require.NoError(t, err)
+	require.NotEmpty(t, rh)
+
+	zip, err := a.Extract(".zip")
+	assert.NoError(t, err)
+	assert.Equal(t, string(rh), string(zip))
+}
+
 func TestGpg_Close(t *testing.T) {
 	fn := "testdata/notempty.asc"
 
