@@ -325,14 +325,14 @@ func TestGpg_Extract4(t *testing.T) {
 	assert.Equal(t, string(rh), string(zip))
 }
 
-func TestGpg_Extract5(t *testing.T) {
-	fn := "testdata/CIMBL-399-CERTS.zip.asc"
+func TestGpg_Extract4_Debug(t *testing.T) {
+	fn := "testdata/notempty.zip.asc"
 	fDebug = true
 
-	a := &Gpg{fn: fn, unc: "testdata/CIMBL-399-CERTS.zip", gpg: NullGPG{}}
+	a := &Gpg{fn: fn, unc: "notempty.zip", gpg: NullGPG{}}
 	defer a.Close()
 
-	rh, err := ioutil.ReadFile("testdata/CIMBL-399-CERTS.zip")
+	rh, err := ioutil.ReadFile("testdata/notempty.zip")
 	require.NoError(t, err)
 	require.NotEmpty(t, rh)
 
