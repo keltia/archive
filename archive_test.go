@@ -84,7 +84,7 @@ func TestNewArchive_Gzip(t *testing.T) {
 	assert.IsType(t, (*Gzip)(nil), a)
 }
 
-func TestNew_Gpg(t *testing.T) {
+func TestNewArchive_Gpg(t *testing.T) {
 	a, err := New("testdata/notempty.asc")
 	require.NoError(t, err)
 	assert.NotEmpty(t, a)
