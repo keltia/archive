@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Misc.
+
 func TestVersion(t *testing.T) {
 	require.Equal(t, myVersion, Version())
 }
@@ -39,6 +41,8 @@ func TestReset(t *testing.T) {
 	Reset()
 	require.False(t, fVerbose)
 }
+
+// NewArchive
 
 func TestNewArchive_Empty(t *testing.T) {
 	a, err := New("")
@@ -331,6 +335,8 @@ func TestGpg_Close(t *testing.T) {
 	a := &Gpg{fn: fn, unc: "notempty.txt", gpg: NullGPG{}}
 	require.NoError(t, a.Close())
 }
+
+// FromReader
 
 func TestNewFromReader_Nil(t *testing.T) {
 	a, err := NewFromReader(nil, ArchivePlain)
