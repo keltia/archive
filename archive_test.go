@@ -133,6 +133,13 @@ func TestPlain_Close(t *testing.T) {
 
 // Zip
 
+func TestNewZipfile_Garbage(t *testing.T) {
+	fn := "testdata/garbage.zip"
+	a, err := NewZipfile(fn)
+	require.Error(t, err)
+	assert.Empty(t, a)
+}
+
 func TestZip_Extract(t *testing.T) {
 	fn := "testdata/notempty.zip"
 	a, err := New(fn)
