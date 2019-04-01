@@ -343,6 +343,81 @@ func TestGpg_Close(t *testing.T) {
 	require.NoError(t, a.Close())
 }
 
+// Tar
+
+func TestNewTarfile(t *testing.T) {
+	fn := "/nonexistent"
+	a, err := NewTarfile(fn)
+	require.Error(t, err)
+	assert.Empty(t, a)
+}
+
+func TestTar_Extract(t *testing.T) {
+	fn := "testdata/notempty.tar"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+	defer a.Close()
+
+	rh, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, rh)
+
+	txt, err := a.Extract("notempty.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, string(rh), string(txt))
+}
+
+func TestTar_Extract_Debug(t *testing.T) {
+	fn := "testdata/notempty.tar"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+	defer a.Close()
+
+	SetDebug()
+	rh, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, rh)
+
+	txt, err := a.Extract("notempty.txt")
+	assert.NoError(t, err)
+	assert.Equal(t, string(rh), string(txt))
+	Reset()
+}
+
+func TestTar_Extract_Empty(t *testing.T) {
+	fn := "testdata/empty.tar"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+	defer a.Close()
+
+	txt, err := a.Extract(".txt")
+	assert.Error(t, err)
+	assert.Empty(t, txt)
+}
+
+func TestTar_Extract2(t *testing.T) {
+	fn := "testdata/notempty.tar"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+
+	txt, err := a.Extract(".xml")
+	assert.Error(t, err)
+	assert.Empty(t, txt)
+}
+
+func TestTar_Close(t *testing.T) {
+	fn := "testdata/notempty.tar"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+
+	require.NoError(t, a.Close())
+}
+
 // FromReader
 
 func TestNewFromReader_Nil(t *testing.T) {
