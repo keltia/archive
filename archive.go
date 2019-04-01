@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"archive/tar"
 	"archive/zip"
 	"bytes"
 	"compress/gzip"
@@ -17,7 +18,7 @@ import (
 )
 
 const (
-	myVersion = "0.3.3"
+	myVersion = "0.4.0"
 )
 
 var (
@@ -115,6 +116,53 @@ func (a Zip) Extract(t string) ([]byte, error) {
 // Close does something here
 func (a Zip) Close() error {
 	return a.zfh.Close()
+}
+
+// Tar is a tar archive :)
+type Tar struct {
+	fn  string
+	tfh *tar.Reader
+}
+
+func NewTarfile(fn string) (*Tar, error) {
+	fh, err := os.Open(fn)
+	if err != nil {
+		return &Tar{}, errors.Wrap(err, "NewTarfile")
+	}
+
+	tfh := tar.NewReader(fh)
+	return &Tar{fn: fn, tfh: tfh}, nil
+}
+
+func (a Tar) Extract(t string) ([]byte, error) {
+	for {
+		hdr, err := a.tfh.Next()
+		if err == io.EOF {
+			break // End of archive
+		}
+		if err != nil {
+			return []byte{}, errors.Wrap(err, "read")
+		}
+
+		debug("found %s", hdr.Name)
+
+		var buf bytes.Buffer
+
+		if strings.HasSuffix(hdr.Name, t) {
+			n, err := io.Copy(&buf, a.tfh)
+			if err != nil {
+				return []byte{}, errors.Wrap(err, "copy")
+			}
+			debug("read %d bytes", n)
+			return buf.Bytes(), nil
+		}
+	}
+	return nil, errors.New("not found")
+}
+
+// Close does something here
+func (a Tar) Close() error {
+	return nil
 }
 
 // Gzip is a gzip-compressed file
@@ -253,6 +301,8 @@ func New(fn string) (ExtractCloser, error) {
 		fallthrough
 	case ".gpg":
 		return NewGpgfile(fn)
+	case ".tar":
+		return NewTarfile(fn)
 	}
 	return &Plain{fn}, nil
 }
