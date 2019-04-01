@@ -144,12 +144,16 @@ func (a Tar) Extract(t string) ([]byte, error) {
 			return []byte{}, errors.Wrap(err, "read")
 		}
 
+		debug("found %s", hdr.Name)
+
 		var buf bytes.Buffer
 
 		if strings.HasSuffix(hdr.Name, t) {
-			if _, err := io.Copy(&buf, a.tfh); err != nil {
+			n, err := io.Copy(&buf, a.tfh)
+			if err != nil {
 				return []byte{}, errors.Wrap(err, "copy")
 			}
+			debug("read %d bytes", n)
 			return buf.Bytes(), nil
 		}
 	}
