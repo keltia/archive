@@ -17,7 +17,7 @@ As with many Go utilities, a simple
 
     go get github.com/keltia/archive
 
-is enough to fetch, build and install.
+is enough to fetch, build and install.  Most of the time you will not need to do it explicitely, other applications will fetch it automatically as a dependency.
 
 # Dependencies
 
@@ -33,6 +33,7 @@ The module currently supports the following "archives":
 - gzip files (one file per stream, only first stream)
 - zip files
 - GPG files (either .asc or .gpg)
+- Tar files
 
 SYNOPSIS
 ``` go
