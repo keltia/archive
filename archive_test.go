@@ -513,3 +513,22 @@ func TestNewFromReader_Gzip(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, a)
 }
+
+func TestExt2Type(t *testing.T) {
+	td := []struct {
+		ins string
+		out int
+	}{
+		{"", ArchivePlain},
+		{"zip", ArchiveZip},
+		{"gz", ArchiveGzip},
+		{"asc", ArchiveGpg},
+		{"gpg", ArchiveGpg},
+		{"tar", ArchiveTar},
+		{"txt", ArchivePlain},
+	}
+
+	for _, d := range td {
+		assert.Equal(t, d.out, Ext2Type(d.ins))
+	}
+}

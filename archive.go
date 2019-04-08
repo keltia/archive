@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	myVersion = "0.4.0"
+	myVersion = "0.5.0"
 )
 
 var (
@@ -337,4 +337,22 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 		return NewGpgfile(fn)
 	}
 	return &Plain{fn}, fmt.Errorf("unknown type")
+}
+
+// Convert from string to archive type (int)
+func Ext2Type(typ string) int {
+	switch typ {
+	case "zip":
+		return ArchiveZip
+	case "gz":
+		return ArchiveGzip
+	case "asc":
+		fallthrough
+	case "gpg":
+		return ArchiveGpg
+	case "tar":
+		return ArchiveTar
+	default:
+		return ArchivePlain
+	}
 }
