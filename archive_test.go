@@ -520,12 +520,12 @@ func TestExt2Type(t *testing.T) {
 		out int
 	}{
 		{"", ArchivePlain},
-		{"zip", ArchiveZip},
-		{"gz", ArchiveGzip},
-		{"asc", ArchiveGpg},
-		{"gpg", ArchiveGpg},
-		{"tar", ArchiveTar},
-		{"txt", ArchivePlain},
+		{".zip", ArchiveZip},
+		{".gz", ArchiveGzip},
+		{".asc", ArchiveGpg},
+		{".gpg", ArchiveGpg},
+		{".tar", ArchiveTar},
+		{".txt", ArchivePlain},
 	}
 
 	for _, d := range td {
