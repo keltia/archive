@@ -27,28 +27,6 @@ var (
 	fDebug   = false
 )
 
-// SetVerbose sets the mode
-func SetVerbose() {
-	fVerbose = true
-}
-
-// SetDebug sets the mode too
-func SetDebug() {
-	fDebug = true
-	fVerbose = true
-}
-
-// Reset is for the two flags
-func Reset() {
-	fDebug = false
-	fVerbose = false
-}
-
-// Version reports it
-func Version() string {
-	return myVersion
-}
-
 // Extracter is the main interface we have
 type Extracter interface {
 	Extract(t string) ([]byte, error)
@@ -390,4 +368,28 @@ func Ext2Type(typ string) int {
 	default:
 		return ArchivePlain
 	}
+}
+
+// ------------------- Misc.
+
+// SetVerbose sets the mode
+func SetVerbose() {
+	fVerbose = true
+}
+
+// SetDebug sets the mode too
+func SetDebug() {
+	fDebug = true
+	fVerbose = true
+}
+
+// Reset is for the two flags
+func Reset() {
+	fDebug = false
+	fVerbose = false
+}
+
+// Version reports it
+func Version() string {
+	return myVersion
 }
