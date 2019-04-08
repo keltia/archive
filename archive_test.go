@@ -176,6 +176,15 @@ func TestZip_Close(t *testing.T) {
 	require.NoError(t, a.Close())
 }
 
+func TestZip_Type(t *testing.T) {
+	fn := "testdata/notempty.zip"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+
+	require.Equal(t, ArchiveZip, a.Type())
+}
+
 // Gzip
 
 func TestGzip_Extract(t *testing.T) {
