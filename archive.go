@@ -336,6 +336,8 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 		return nil, fmt.Errorf("not supported")
 	case ArchiveGpg:
 		return NewGpgfile(fn)
+	case ArchiveTar:
+		return NewTarfile(fn)
 	}
 	return &Plain{fn}, fmt.Errorf("unknown type")
 }

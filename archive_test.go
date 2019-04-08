@@ -514,6 +514,23 @@ func TestNewFromReader_Gzip(t *testing.T) {
 	assert.NotEmpty(t, a)
 }
 
+func TestNewFromReader_Tar(t *testing.T) {
+	file, err := ioutil.ReadFile("testdata/notempty.tar")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, file)
+
+	var buf bytes.Buffer
+
+	n, err := buf.Write(file)
+	assert.NoError(t, err)
+	assert.Equal(t, len(file), n)
+
+	a, err := NewFromReader(&buf, ArchiveTar)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, a)
+	require.Equal(t, ArchiveTar, a.Type())
+}
+
 func TestExt2Type(t *testing.T) {
 	td := []struct {
 		ins string
