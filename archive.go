@@ -19,7 +19,7 @@ import (
 
 // Version number (SemVer)
 const (
-	myVersion = "0.5.1"
+	myVersion = "0.6.0"
 )
 
 var (
