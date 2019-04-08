@@ -176,6 +176,15 @@ func TestZip_Close(t *testing.T) {
 	require.NoError(t, a.Close())
 }
 
+func TestZip_Type(t *testing.T) {
+	fn := "testdata/notempty.zip"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+
+	require.Equal(t, ArchiveZip, a.Type())
+}
+
 // Gzip
 
 func TestGzip_Extract(t *testing.T) {
@@ -464,6 +473,7 @@ func TestNewFromReader_Plain(t *testing.T) {
 	a, err := NewFromReader(&buf, ArchivePlain)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, a)
+	require.Equal(t, ArchivePlain, a.Type())
 }
 
 func TestNewFromReader_Gpg(t *testing.T) {
@@ -480,6 +490,7 @@ func TestNewFromReader_Gpg(t *testing.T) {
 	a, err := NewFromReader(&buf, ArchiveGpg)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, a)
+	require.Equal(t, ArchiveGpg, a.Type())
 }
 
 func TestNewFromReader_Zip(t *testing.T) {
@@ -512,6 +523,41 @@ func TestNewFromReader_Gzip(t *testing.T) {
 	a, err := NewFromReader(&buf, ArchiveGzip)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, a)
+	require.Equal(t, ArchiveGzip, a.Type())
+}
+
+func TestNewFromReader_Tar(t *testing.T) {
+	file, err := ioutil.ReadFile("testdata/notempty.tar")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, file)
+
+	var buf bytes.Buffer
+
+	n, err := buf.Write(file)
+	assert.NoError(t, err)
+	assert.Equal(t, len(file), n)
+
+	a, err := NewFromReader(&buf, ArchiveTar)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, a)
+	require.Equal(t, ArchiveTar, a.Type())
+}
+
+func TestNewFromReader_Invalid(t *testing.T) {
+	file, err := ioutil.ReadFile("testdata/notempty.tar")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, file)
+
+	var buf bytes.Buffer
+
+	n, err := buf.Write(file)
+	assert.NoError(t, err)
+	assert.Equal(t, len(file), n)
+
+	a, err := NewFromReader(&buf, 666)
+	assert.Error(t, err)
+	assert.NotEmpty(t, a)
+	assert.Equal(t, &Plain{"-"}, a)
 }
 
 func TestExt2Type(t *testing.T) {
@@ -520,12 +566,12 @@ func TestExt2Type(t *testing.T) {
 		out int
 	}{
 		{"", ArchivePlain},
-		{"zip", ArchiveZip},
-		{"gz", ArchiveGzip},
-		{"asc", ArchiveGpg},
-		{"gpg", ArchiveGpg},
-		{"tar", ArchiveTar},
-		{"txt", ArchivePlain},
+		{".zip", ArchiveZip},
+		{".gz", ArchiveGzip},
+		{".asc", ArchiveGpg},
+		{".gpg", ArchiveGpg},
+		{".tar", ArchiveTar},
+		{".txt", ArchivePlain},
 	}
 
 	for _, d := range td {

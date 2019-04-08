@@ -19,7 +19,7 @@ import (
 
 // Version number (SemVer)
 const (
-	myVersion = "0.5.1"
+	myVersion = "0.6.0"
 )
 
 var (
@@ -58,6 +58,7 @@ type Extracter interface {
 type ExtractCloser interface {
 	Extracter
 	Close() error
+	Type() int
 }
 
 // Plain is for plain text
@@ -77,6 +78,11 @@ func (a Plain) Extract(t string) ([]byte, error) {
 // Close is a no-op
 func (a Plain) Close() error {
 	return nil
+}
+
+// Type returns the archive type obviously.
+func (a Plain) Type() int {
+	return ArchivePlain
 }
 
 // Zip is for pkzip/infozip files
@@ -119,6 +125,11 @@ func (a Zip) Close() error {
 	return a.zfh.Close()
 }
 
+// Type returns the archive type obviously.
+func (a Zip) Type() int {
+	return ArchiveZip
+}
+
 // Tar is a tar archive :)
 type Tar struct {
 	fn  string
@@ -126,13 +137,19 @@ type Tar struct {
 }
 
 func NewTarfile(fn string) (*Tar, error) {
+	var fh io.Reader
+
+	if fn == "-" {
+		tfh := tar.NewReader(os.Stdin)
+		return &Tar{fn: fn, tfh: tfh}, nil
+	}
+
 	fh, err := os.Open(fn)
 	if err != nil {
 		return &Tar{}, errors.Wrap(err, "NewTarfile")
 	}
 
-	tfh := tar.NewReader(fh)
-	return &Tar{fn: fn, tfh: tfh}, nil
+	return &Tar{fn: fn, tfh: tar.NewReader(fh)}, nil
 }
 
 func (a Tar) Extract(t string) ([]byte, error) {
@@ -164,6 +181,11 @@ func (a Tar) Extract(t string) ([]byte, error) {
 // Close does something here
 func (a Tar) Close() error {
 	return nil
+}
+
+// Type returns the archive type obviously.
+func (a *Tar) Type() int {
+	return ArchiveTar
 }
 
 // Gzip is a gzip-compressed file
@@ -205,6 +227,11 @@ func (a Gzip) Extract(t string) ([]byte, error) {
 // Close is a no-op
 func (a Gzip) Close() error {
 	return nil
+}
+
+// Type returns the archive type obviously.
+func (a Gzip) Type() int {
+	return ArchiveGzip
 }
 
 // gpg
@@ -283,6 +310,11 @@ func (a Gpg) Close() error {
 	return nil
 }
 
+// Type returns the archive type obviously.
+func (a *Gpg) Type() int {
+	return ArchiveGpg
+}
+
 // New is the main creator
 func New(fn string) (ExtractCloser, error) {
 	if fn == "" {
@@ -336,11 +368,13 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 		return nil, fmt.Errorf("not supported")
 	case ArchiveGpg:
 		return NewGpgfile(fn)
+	case ArchiveTar:
+		return NewTarfile(fn)
 	}
 	return &Plain{fn}, fmt.Errorf("unknown type")
 }
 
-// Convert from string to archive type (int)
+// Ext2Type converts from string to archive type (int)
 func Ext2Type(typ string) int {
 	switch typ {
 	case ".zip":
