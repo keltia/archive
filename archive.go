@@ -137,13 +137,19 @@ type Tar struct {
 }
 
 func NewTarfile(fn string) (*Tar, error) {
+	var fh io.Reader
+
+	if fn == "-" {
+		tfh := tar.NewReader(os.Stdin)
+		return &Tar{fn: fn, tfh: tfh}, nil
+	}
+
 	fh, err := os.Open(fn)
 	if err != nil {
 		return &Tar{}, errors.Wrap(err, "NewTarfile")
 	}
 
-	tfh := tar.NewReader(fh)
-	return &Tar{fn: fn, tfh: tfh}, nil
+	return &Tar{fn: fn, tfh: tar.NewReader(fh)}, nil
 }
 
 func (a Tar) Extract(t string) ([]byte, error) {

@@ -534,6 +534,23 @@ func TestNewFromReader_Tar(t *testing.T) {
 	require.Equal(t, ArchiveTar, a.Type())
 }
 
+func TestNewFromReader_Invalid(t *testing.T) {
+	file, err := ioutil.ReadFile("testdata/notempty.tar")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, file)
+
+	var buf bytes.Buffer
+
+	n, err := buf.Write(file)
+	assert.NoError(t, err)
+	assert.Equal(t, len(file), n)
+
+	a, err := NewFromReader(&buf, 666)
+	assert.Error(t, err)
+	assert.NotEmpty(t, a)
+	assert.Equal(t, &Plain{"-"}, a)
+}
+
 func TestExt2Type(t *testing.T) {
 	td := []struct {
 		ins string
