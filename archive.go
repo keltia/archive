@@ -17,6 +17,7 @@ import (
 	"github.com/proglottis/gpgme"
 )
 
+// Version number (SemVer)
 const (
 	myVersion = "0.5.1"
 )
