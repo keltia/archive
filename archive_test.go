@@ -464,6 +464,7 @@ func TestNewFromReader_Plain(t *testing.T) {
 	a, err := NewFromReader(&buf, ArchivePlain)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, a)
+	require.Equal(t, ArchivePlain, a.Type())
 }
 
 func TestNewFromReader_Gpg(t *testing.T) {
@@ -480,6 +481,7 @@ func TestNewFromReader_Gpg(t *testing.T) {
 	a, err := NewFromReader(&buf, ArchiveGpg)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, a)
+	require.Equal(t, ArchiveGpg, a.Type())
 }
 
 func TestNewFromReader_Zip(t *testing.T) {
@@ -512,6 +514,7 @@ func TestNewFromReader_Gzip(t *testing.T) {
 	a, err := NewFromReader(&buf, ArchiveGzip)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, a)
+	require.Equal(t, ArchiveGzip, a.Type())
 }
 
 func TestNewFromReader_Tar(t *testing.T) {
