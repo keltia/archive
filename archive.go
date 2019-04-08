@@ -27,6 +27,8 @@ var (
 	fDebug   = false
 )
 
+// ------------------- Interfaces
+
 // Extracter is the main interface we have
 type Extracter interface {
 	Extract(t string) ([]byte, error)
@@ -38,6 +40,8 @@ type ExtractCloser interface {
 	Close() error
 	Type() int
 }
+
+// ------------------- Plain
 
 // Plain is for plain text
 type Plain struct {
@@ -62,6 +66,8 @@ func (a Plain) Close() error {
 func (a Plain) Type() int {
 	return ArchivePlain
 }
+
+// ------------------- Zip
 
 // Zip is for pkzip/infozip files
 type Zip struct {
@@ -107,6 +113,8 @@ func (a Zip) Close() error {
 func (a Zip) Type() int {
 	return ArchiveZip
 }
+
+// ------------------- Tar
 
 // Tar is a tar archive :)
 type Tar struct {
@@ -166,6 +174,8 @@ func (a *Tar) Type() int {
 	return ArchiveTar
 }
 
+// ------------------- Gzip
+
 // Gzip is a gzip-compressed file
 type Gzip struct {
 	fn  string
@@ -212,7 +222,7 @@ func (a Gzip) Type() int {
 	return ArchiveGzip
 }
 
-// gpg
+// ------------------- GPG
 
 // Decrypter is the gpgme interface
 type Decrypter interface {
@@ -292,6 +302,8 @@ func (a Gpg) Close() error {
 func (a *Gpg) Type() int {
 	return ArchiveGpg
 }
+
+// ------------------- New/NewFromReader
 
 // New is the main creator
 func New(fn string) (ExtractCloser, error) {
