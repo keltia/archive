@@ -17,8 +17,9 @@ import (
 	"github.com/proglottis/gpgme"
 )
 
+// Version number (SemVer)
 const (
-	myVersion = "0.5.0"
+	myVersion = "0.5.1"
 )
 
 var (
@@ -342,15 +343,15 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 // Convert from string to archive type (int)
 func Ext2Type(typ string) int {
 	switch typ {
-	case "zip":
+	case ".zip":
 		return ArchiveZip
-	case "gz":
+	case ".gz":
 		return ArchiveGzip
-	case "asc":
+	case ".asc":
 		fallthrough
-	case "gpg":
+	case ".gpg":
 		return ArchiveGpg
-	case "tar":
+	case ".tar":
 		return ArchiveTar
 	default:
 		return ArchivePlain
