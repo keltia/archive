@@ -51,7 +51,7 @@ type Plain struct {
 // Extract returns the content of the file
 func (a Plain) Extract(t string) ([]byte, error) {
 	ext := filepath.Ext(a.Name)
-	if ext == t || t == "" {
+	if ext == t || t == "" || t == "-" {
 		return ioutil.ReadFile(a.Name)
 	}
 	return []byte{}, fmt.Errorf("wrong file type")
