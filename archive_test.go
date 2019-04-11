@@ -100,6 +100,23 @@ func TestNewArchive_Tar(t *testing.T) {
 
 // Plain
 
+func TestNewPlainfile(t *testing.T) {
+	fn := "testdata/notempty.txt"
+
+	a, err := NewPlainfile(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+	require.IsType(t, (*Plain)(nil), a)
+}
+
+func TestNewPlainfile2(t *testing.T) {
+	fn := "/nonexistent"
+
+	a, err := NewPlainfile(fn)
+	require.Error(t, err)
+	require.Nil(t, a)
+}
+
 func TestPlain_Extract(t *testing.T) {
 	fn := "testdata/notempty.txt"
 	a, err := New(fn)
@@ -124,12 +141,29 @@ func TestPlain_Extract2(t *testing.T) {
 
 func TestPlain_Extract3(t *testing.T) {
 	fn := "testdata/notempty.txt"
-	tfn, err := ioutil.ReadFile(fn)
-	require.NoError(t, err)
 
 	a, err := New(fn)
 	require.NoError(t, err)
 	require.NotNil(t, a)
+	require.IsType(t, (*Plain)(nil), a)
+
+	txt, err := a.Extract("-")
+	assert.Error(t, err)
+	assert.Empty(t, txt)
+}
+
+func TestPlain_Extract4(t *testing.T) {
+	fn := "testdata/notempty.txt"
+	tfn, err := ioutil.ReadFile(fn)
+	require.NoError(t, err)
+
+	fh, err := os.Open(fn)
+	require.NoError(t, err)
+
+	a, err := NewFromReader(fh, ArchivePlain)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+	require.IsType(t, (*Plain)(nil), a)
 
 	txt, err := a.Extract("-")
 	assert.NoError(t, err)
@@ -572,7 +606,7 @@ func TestNewFromReader_Invalid(t *testing.T) {
 	a, err := NewFromReader(&buf, 666)
 	assert.Error(t, err)
 	assert.NotEmpty(t, a)
-	assert.Equal(t, &Plain{"-"}, a)
+	assert.Equal(t, &Plain{"-", &buf}, a)
 }
 
 func TestExt2Type(t *testing.T) {

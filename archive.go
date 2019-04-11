@@ -19,7 +19,7 @@ import (
 
 // Version number (SemVer)
 const (
-	myVersion = "0.6.1"
+	myVersion = "0.6.2"
 )
 
 var (
@@ -46,12 +46,30 @@ type ExtractCloser interface {
 // Plain is for plain text
 type Plain struct {
 	Name string
+	r    io.Reader
+}
+
+func NewPlainfile(fn string) (*Plain, error) {
+	fh, err := os.Open(fn)
+	if err != nil {
+		return nil, errors.Wrap(err, "NewPlainfile")
+	}
+	return &Plain{Name: fn, r: fh}, nil
 }
 
 // Extract returns the content of the file
 func (a Plain) Extract(t string) ([]byte, error) {
+	if a.Name == "-" {
+		var b bytes.Buffer
+
+		_, err := io.Copy(&b, a.r)
+		if err != nil {
+			return nil, errors.Wrap(err, "Extract/Copy")
+		}
+		return b.Bytes(), nil
+	}
 	ext := filepath.Ext(a.Name)
-	if ext == t || t == "" || t == "-" {
+	if ext == t || t == "" {
 		return ioutil.ReadFile(a.Name)
 	}
 	return []byte{}, fmt.Errorf("wrong file type")
@@ -327,7 +345,7 @@ func New(fn string) (ExtractCloser, error) {
 	case ".tar":
 		return NewTarfile(fn)
 	}
-	return &Plain{fn}, nil
+	return NewPlainfile(fn)
 }
 
 const (
@@ -351,7 +369,7 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 	fn := "-"
 	switch t {
 	case ArchivePlain:
-		return &Plain{fn}, nil
+		return &Plain{Name: fn, r: r}, nil
 	case ArchiveGzip:
 		return NewGzipfile(fn)
 	case ArchiveZip:
@@ -361,7 +379,7 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 	case ArchiveTar:
 		return NewTarfile(fn)
 	}
-	return &Plain{fn}, fmt.Errorf("unknown type")
+	return &Plain{Name: fn, r: r}, fmt.Errorf("unknown type")
 }
 
 // Ext2Type converts from string to archive type (int)
