@@ -19,7 +19,7 @@ import (
 
 // Version number (SemVer)
 const (
-	myVersion = "0.6.0"
+	myVersion = "0.6.1"
 )
 
 var (
@@ -27,27 +27,7 @@ var (
 	fDebug   = false
 )
 
-// SetVerbose sets the mode
-func SetVerbose() {
-	fVerbose = true
-}
-
-// SetDebug sets the mode too
-func SetDebug() {
-	fDebug = true
-	fVerbose = true
-}
-
-// Reset is for the two flags
-func Reset() {
-	fDebug = false
-	fVerbose = false
-}
-
-// Version reports it
-func Version() string {
-	return myVersion
-}
+// ------------------- Interfaces
 
 // Extracter is the main interface we have
 type Extracter interface {
@@ -61,6 +41,8 @@ type ExtractCloser interface {
 	Type() int
 }
 
+// ------------------- Plain
+
 // Plain is for plain text
 type Plain struct {
 	Name string
@@ -69,7 +51,7 @@ type Plain struct {
 // Extract returns the content of the file
 func (a Plain) Extract(t string) ([]byte, error) {
 	ext := filepath.Ext(a.Name)
-	if ext == t || t == "" {
+	if ext == t || t == "" || t == "-" {
 		return ioutil.ReadFile(a.Name)
 	}
 	return []byte{}, fmt.Errorf("wrong file type")
@@ -84,6 +66,8 @@ func (a Plain) Close() error {
 func (a Plain) Type() int {
 	return ArchivePlain
 }
+
+// ------------------- Zip
 
 // Zip is for pkzip/infozip files
 type Zip struct {
@@ -129,6 +113,8 @@ func (a Zip) Close() error {
 func (a Zip) Type() int {
 	return ArchiveZip
 }
+
+// ------------------- Tar
 
 // Tar is a tar archive :)
 type Tar struct {
@@ -188,6 +174,8 @@ func (a *Tar) Type() int {
 	return ArchiveTar
 }
 
+// ------------------- Gzip
+
 // Gzip is a gzip-compressed file
 type Gzip struct {
 	fn  string
@@ -234,7 +222,7 @@ func (a Gzip) Type() int {
 	return ArchiveGzip
 }
 
-// gpg
+// ------------------- GPG
 
 // Decrypter is the gpgme interface
 type Decrypter interface {
@@ -315,6 +303,8 @@ func (a *Gpg) Type() int {
 	return ArchiveGpg
 }
 
+// ------------------- New/NewFromReader
+
 // New is the main creator
 func New(fn string) (ExtractCloser, error) {
 	if fn == "" {
@@ -390,4 +380,28 @@ func Ext2Type(typ string) int {
 	default:
 		return ArchivePlain
 	}
+}
+
+// ------------------- Misc.
+
+// SetVerbose sets the mode
+func SetVerbose() {
+	fVerbose = true
+}
+
+// SetDebug sets the mode too
+func SetDebug() {
+	fDebug = true
+	fVerbose = true
+}
+
+// Reset is for the two flags
+func Reset() {
+	fDebug = false
+	fVerbose = false
+}
+
+// Version reports it
+func Version() string {
+	return myVersion
 }

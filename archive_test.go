@@ -122,6 +122,21 @@ func TestPlain_Extract2(t *testing.T) {
 	assert.Empty(t, txt)
 }
 
+func TestPlain_Extract3(t *testing.T) {
+	fn := "testdata/notempty.txt"
+	tfn, err := ioutil.ReadFile(fn)
+	require.NoError(t, err)
+
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+
+	txt, err := a.Extract("-")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, txt)
+	require.Equal(t, tfn, txt)
+}
+
 func TestPlain_Close(t *testing.T) {
 	fn := "testdata/notempty.txt"
 	a, err := New(fn)
