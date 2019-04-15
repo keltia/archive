@@ -216,10 +216,6 @@ func NewGzipfile(fn string) (*Gzip, error) {
 
 // Extract returns the content of the file
 func (a Gzip) Extract(t string) ([]byte, error) {
-	ext := filepath.Ext(a.unc)
-	if t != ext {
-		return []byte{}, fmt.Errorf("bad filetype %s", t)
-	}
 	zfh, err := gzip.NewReader(a.gfh)
 	if err != nil {
 		return []byte{}, errors.Wrap(err, "gunzip")
@@ -371,7 +367,7 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 	case ArchivePlain:
 		return &Plain{Name: fn, r: r}, nil
 	case ArchiveGzip:
-		return NewGzipfile(fn)
+		return &Gzip{fn: fn, unc: fn, gfh: r}, nil
 	case ArchiveZip:
 		return nil, fmt.Errorf("not supported")
 	case ArchiveGpg:
