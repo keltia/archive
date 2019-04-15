@@ -84,6 +84,12 @@ func TestNewArchive_Gzip(t *testing.T) {
 	assert.IsType(t, (*Gzip)(nil), a)
 }
 
+func TestNewArchive_Gzip_Bad(t *testing.T) {
+	a, err := New("/nonexistent")
+	require.Error(t, err)
+	assert.Empty(t, a)
+}
+
 func TestNewArchive_Gpg(t *testing.T) {
 	a, err := New("testdata/notempty.asc")
 	require.NoError(t, err)
@@ -236,6 +242,19 @@ func TestZip_Type(t *testing.T) {
 
 // Gzip
 
+func TestNewGzipfile(t *testing.T) {
+	a, err := NewGzipfile("testdata/notempty.txt.gz")
+	require.NoError(t, err)
+	assert.NotEmpty(t, a)
+	assert.IsType(t, (*Gzip)(nil), a)
+}
+
+func TestGzipfile_Bad(t *testing.T) {
+	a, err := NewGzipfile("/nonexistent")
+	require.Error(t, err)
+	assert.Empty(t, a)
+}
+
 func TestGzip_Extract(t *testing.T) {
 	fn := "testdata/notempty.txt.gz"
 	a, err := New(fn)
@@ -260,8 +279,8 @@ func TestGzip_Extract2(t *testing.T) {
 	require.NotNil(t, a)
 
 	txt, err := a.Extract(".xml")
-	assert.Error(t, err)
-	assert.Empty(t, txt)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, txt)
 }
 
 func TestGzip_Extract3(t *testing.T) {
@@ -269,6 +288,82 @@ func TestGzip_Extract3(t *testing.T) {
 	a, err := New(fn)
 	require.Error(t, err)
 	require.Empty(t, a)
+}
+
+func TestGzip_Extract_Nil(t *testing.T) {
+
+	fh, err := os.Open("/dev/null")
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	a := &Gzip{gfh: fh}
+
+	_, err = a.Extract(".txt")
+	assert.Error(t, err)
+}
+
+func TestGzip_Extract_FromReader(t *testing.T) {
+	fn := "testdata/notempty.txt.gz"
+
+	fh, err := os.Open(fn)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	bn, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, bn)
+
+	a, err := NewFromReader(fh, ArchiveGzip)
+	require.NoError(t, err)
+	require.NotEmpty(t, a)
+
+	content, err := a.Extract("")
+	assert.NoError(t, err)
+	assert.EqualValues(t, bn, content)
+}
+
+func TestGzip_Extract_FromReaderYes(t *testing.T) {
+	fn := "testdata/notempty.txt.gz"
+
+	fh, err := os.Open(fn)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	defer fh.Close()
+
+	bn, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, bn)
+
+	a, err := NewFromReader(fh, ArchiveGzip)
+	require.NoError(t, err)
+	require.NotEmpty(t, a)
+
+	content, err := a.Extract(".txt")
+	assert.NoError(t, err)
+	assert.EqualValues(t, bn, content)
+}
+
+func TestGzip_Extract_FromReader_Nope(t *testing.T) {
+	fn := "testdata/notempty.txt.gz"
+
+	fh, err := os.Open(fn)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	defer fh.Close()
+
+	bn, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, bn)
+
+	a, err := NewFromReader(fh, ArchiveGzip)
+	require.NoError(t, err)
+	require.NotEmpty(t, a)
+
+	content, err := a.Extract(".arc")
+	assert.NoError(t, err)
+	assert.EqualValues(t, bn, content)
 }
 
 func TestGzip_Close(t *testing.T) {
