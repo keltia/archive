@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/klauspost/compress/zstd"
 	"github.com/pkg/errors"
 	"github.com/proglottis/gpgme"
 )
@@ -275,9 +276,9 @@ func NewZstdfile(fn string) (*Zstd, error) {
 
 // Extract returns the content of the file
 func (a Zstd) Extract(t string) ([]byte, error) {
-	zfh, err := gzip.NewReader(a.gfh)
+	zfh, err := zstd.NewReader(a.gfh)
 	if err != nil {
-		return []byte{}, errors.Wrap(err, "gunzip")
+		return []byte{}, errors.Wrap(err, "zstd uncompress")
 	}
 	content, err := ioutil.ReadAll(zfh)
 	defer zfh.Close()
@@ -393,6 +394,8 @@ func New(fn string) (ExtractCloser, error) {
 		return NewZipfile(fn)
 	case ".gz":
 		return NewGzipfile(fn)
+	case ".zst":
+		return NewZstdfile(fn)
 	case ".asc":
 		fallthrough
 	case ".gpg":
@@ -414,6 +417,8 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 		return &Plain{Name: fn, r: r}, nil
 	case ArchiveGzip:
 		return &Gzip{fn: fn, unc: fn, gfh: r}, nil
+	case ArchiveZstd:
+		return &Zstd{fn: fn, unc: fn, gfh: r}, nil
 	case ArchiveZip:
 		return nil, fmt.Errorf("not supported")
 	case ArchiveGpg:
@@ -431,6 +436,8 @@ func Ext2Type(typ string) int {
 		return ArchiveZip
 	case ".gz":
 		return ArchiveGzip
+	case ".zst":
+		return ArchiveZstd
 	case ".asc":
 		fallthrough
 	case ".gpg":
