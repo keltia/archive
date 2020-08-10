@@ -13,13 +13,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/klauspost/compress/zstd"
 	"github.com/pkg/errors"
 	"github.com/proglottis/gpgme"
 )
 
 // Version number (SemVer)
 const (
-	myVersion = "0.7.0"
+	myVersion = "0.8.0"
 )
 
 var (
@@ -40,6 +41,21 @@ type ExtractCloser interface {
 	Close() error
 	Type() int
 }
+
+const (
+	// ArchivePlain starts the different types
+	ArchivePlain = 1 << iota
+	// ArchiveGzip is for gzip archives
+	ArchiveGzip
+	// ArchiveZip is for zip archives
+	ArchiveZip
+	// ArchiveTar describes the tar ones
+	ArchiveTar
+	// ArchiveGpg is for openpgp archives
+	ArchiveGpg
+	// ArchiveZstd is for Zstd archives
+	ArchiveZstd
+)
 
 // ------------------- Plain
 
@@ -236,6 +252,50 @@ func (a Gzip) Type() int {
 	return ArchiveGzip
 }
 
+// ------------------- Zstd
+
+// Zstd is a gzip-compressed file
+type Zstd struct {
+	fn  string
+	unc string
+	gfh io.Reader
+}
+
+// NewZstdfile stores the uncompressed file name
+func NewZstdfile(fn string) (*Zstd, error) {
+	base := filepath.Base(fn)
+	pc := strings.Split(base, ".")
+	unc := strings.Join(pc[0:len(pc)-1], ".")
+
+	gfh, err := os.Open(fn)
+	if err != nil {
+		return &Zstd{}, errors.Wrap(err, "NewZstdFile")
+	}
+	return &Zstd{fn: fn, unc: unc, gfh: gfh}, nil
+}
+
+// Extract returns the content of the file
+func (a Zstd) Extract(t string) ([]byte, error) {
+	zfh, err := zstd.NewReader(a.gfh)
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "zstd uncompress")
+	}
+	content, err := ioutil.ReadAll(zfh)
+	defer zfh.Close()
+
+	return content, err
+}
+
+// Close is a no-op
+func (a Zstd) Close() error {
+	return nil
+}
+
+// Type returns the archive type obviously.
+func (a Zstd) Type() int {
+	return ArchiveZstd
+}
+
 // ------------------- GPG
 
 // Decrypter is the gpgme interface
@@ -334,6 +394,8 @@ func New(fn string) (ExtractCloser, error) {
 		return NewZipfile(fn)
 	case ".gz":
 		return NewGzipfile(fn)
+	case ".zst":
+		return NewZstdfile(fn)
 	case ".asc":
 		fallthrough
 	case ".gpg":
@@ -343,19 +405,6 @@ func New(fn string) (ExtractCloser, error) {
 	}
 	return NewPlainfile(fn)
 }
-
-const (
-	// ArchivePlain starts the different types
-	ArchivePlain = 1 << iota
-	// ArchiveGzip is for gzip archives
-	ArchiveGzip
-	// ArchiveZip is for zip archives
-	ArchiveZip
-	// ArchiveTar describes the tar ones
-	ArchiveTar
-	// ArchiveGpg is for openpgp archives
-	ArchiveGpg
-)
 
 // NewFromReader uses an io.Reader instead of a file
 func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
@@ -368,6 +417,8 @@ func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
 		return &Plain{Name: fn, r: r}, nil
 	case ArchiveGzip:
 		return &Gzip{fn: fn, unc: fn, gfh: r}, nil
+	case ArchiveZstd:
+		return &Zstd{fn: fn, unc: fn, gfh: r}, nil
 	case ArchiveZip:
 		return nil, fmt.Errorf("not supported")
 	case ArchiveGpg:
@@ -385,6 +436,8 @@ func Ext2Type(typ string) int {
 		return ArchiveZip
 	case ".gz":
 		return ArchiveGzip
+	case ".zst":
+		return ArchiveZstd
 	case ".asc":
 		fallthrough
 	case ".gpg":
