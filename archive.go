@@ -236,6 +236,50 @@ func (a Gzip) Type() int {
 	return ArchiveGzip
 }
 
+// ------------------- Zstd
+
+// Zstd is a gzip-compressed file
+type Zstd struct {
+	fn  string
+	unc string
+	gfh io.Reader
+}
+
+// NewZstdfile stores the uncompressed file name
+func NewZstdfile(fn string) (*Zstd, error) {
+	base := filepath.Base(fn)
+	pc := strings.Split(base, ".")
+	unc := strings.Join(pc[0:len(pc)-1], ".")
+
+	gfh, err := os.Open(fn)
+	if err != nil {
+		return &Zstd{}, errors.Wrap(err, "NewZstdFile")
+	}
+	return &Zstd{fn: fn, unc: unc, gfh: gfh}, nil
+}
+
+// Extract returns the content of the file
+func (a Zstd) Extract(t string) ([]byte, error) {
+	zfh, err := gzip.NewReader(a.gfh)
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "gunzip")
+	}
+	content, err := ioutil.ReadAll(zfh)
+	defer zfh.Close()
+
+	return content, err
+}
+
+// Close is a no-op
+func (a Zstd) Close() error {
+	return nil
+}
+
+// Type returns the archive type obviously.
+func (a Zstd) Type() int {
+	return ArchiveZstd
+}
+
 // ------------------- GPG
 
 // Decrypter is the gpgme interface
@@ -355,6 +399,8 @@ const (
 	ArchiveTar
 	// ArchiveGpg is for openpgp archives
 	ArchiveGpg
+	// ArchiveZstd is for Zstd archives
+	ArchiveZstd
 )
 
 // NewFromReader uses an io.Reader instead of a file
