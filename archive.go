@@ -41,6 +41,21 @@ type ExtractCloser interface {
 	Type() int
 }
 
+const (
+	// ArchivePlain starts the different types
+	ArchivePlain = 1 << iota
+	// ArchiveGzip is for gzip archives
+	ArchiveGzip
+	// ArchiveZip is for zip archives
+	ArchiveZip
+	// ArchiveTar describes the tar ones
+	ArchiveTar
+	// ArchiveGpg is for openpgp archives
+	ArchiveGpg
+	// ArchiveZstd is for Zstd archives
+	ArchiveZstd
+)
+
 // ------------------- Plain
 
 // Plain is for plain text
@@ -387,21 +402,6 @@ func New(fn string) (ExtractCloser, error) {
 	}
 	return NewPlainfile(fn)
 }
-
-const (
-	// ArchivePlain starts the different types
-	ArchivePlain = 1 << iota
-	// ArchiveGzip is for gzip archives
-	ArchiveGzip
-	// ArchiveZip is for zip archives
-	ArchiveZip
-	// ArchiveTar describes the tar ones
-	ArchiveTar
-	// ArchiveGpg is for openpgp archives
-	ArchiveGpg
-	// ArchiveZstd is for Zstd archives
-	ArchiveZstd
-)
 
 // NewFromReader uses an io.Reader instead of a file
 func NewFromReader(r io.Reader, t int) (ExtractCloser, error) {
