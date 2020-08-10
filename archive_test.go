@@ -90,6 +90,19 @@ func TestNewArchive_Gzip_Bad(t *testing.T) {
 	assert.Empty(t, a)
 }
 
+func TestNewArchive_Zstd(t *testing.T) {
+	a, err := New("testdata/notempty.txt.zst")
+	require.NoError(t, err)
+	assert.NotEmpty(t, a)
+	assert.IsType(t, (*Zstd)(nil), a)
+}
+
+func TestNewArchive_Zstd_Bad(t *testing.T) {
+	a, err := New("/nonexistent")
+	require.Error(t, err)
+	assert.Empty(t, a)
+}
+
 func TestNewArchive_Gpg(t *testing.T) {
 	a, err := New("testdata/notempty.asc")
 	require.NoError(t, err)
@@ -368,6 +381,141 @@ func TestGzip_Extract_FromReader_Nope(t *testing.T) {
 
 func TestGzip_Close(t *testing.T) {
 	fn := "testdata/notempty.txt.gz"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+
+	require.NoError(t, a.Close())
+}
+
+// Zstd
+
+func TestNewZstdfile(t *testing.T) {
+	a, err := NewZstdfile("testdata/notempty.txt.zst")
+	require.NoError(t, err)
+	assert.NotEmpty(t, a)
+	assert.IsType(t, (*Zstd)(nil), a)
+}
+
+func TestZstdfile_Bad(t *testing.T) {
+	a, err := NewZstdfile("/nonexistent")
+	require.Error(t, err)
+	assert.Empty(t, a)
+}
+
+func TestZstd_Extract(t *testing.T) {
+	fn := "testdata/notempty.txt.zst"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+	defer a.Close()
+
+	rh, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, rh)
+
+	txt, err := a.Extract(".txt")
+	t.Logf("err=%v", err)
+	assert.NoError(t, err)
+	assert.Equal(t, string(rh), string(txt))
+}
+
+func TestZstd_Extract2(t *testing.T) {
+	fn := "testdata/notempty.txt.zst"
+	a, err := New(fn)
+	require.NoError(t, err)
+	require.NotNil(t, a)
+
+	txt, err := a.Extract(".xml")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, txt)
+}
+
+func TestZstd_Extract3(t *testing.T) {
+	fn := "/nonexistent"
+	a, err := New(fn)
+	require.Error(t, err)
+	require.Empty(t, a)
+}
+
+func TestZstd_Extract_Nil(t *testing.T) {
+
+	fh, err := os.Open("/dev/null")
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	a := &Zstd{gfh: fh}
+
+	_, err = a.Extract(".txt")
+	assert.NoError(t, err)
+}
+
+func TestZstd_Extract_FromReader(t *testing.T) {
+	fn := "testdata/notempty.txt.zst"
+
+	fh, err := os.Open(fn)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	bn, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, bn)
+
+	a, err := NewFromReader(fh, ArchiveZstd)
+	require.NoError(t, err)
+	require.NotEmpty(t, a)
+
+	content, err := a.Extract("")
+	assert.NoError(t, err)
+	assert.EqualValues(t, bn, content)
+}
+
+func TestZstd_Extract_FromReaderYes(t *testing.T) {
+	fn := "testdata/notempty.txt.zst"
+
+	fh, err := os.Open(fn)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	defer fh.Close()
+
+	bn, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, bn)
+
+	a, err := NewFromReader(fh, ArchiveZstd)
+	require.NoError(t, err)
+	require.NotEmpty(t, a)
+
+	content, err := a.Extract(".txt")
+	assert.NoError(t, err)
+	assert.EqualValues(t, bn, content)
+}
+
+func TestZstd_Extract_FromReader_Nope(t *testing.T) {
+	fn := "testdata/notempty.txt.zst"
+
+	fh, err := os.Open(fn)
+	require.NoError(t, err)
+	require.NotNil(t, fh)
+
+	defer fh.Close()
+
+	bn, err := ioutil.ReadFile("testdata/notempty.txt")
+	require.NoError(t, err)
+	require.NotEmpty(t, bn)
+
+	a, err := NewFromReader(fh, ArchiveZstd)
+	require.NoError(t, err)
+	require.NotEmpty(t, a)
+
+	content, err := a.Extract(".arc")
+	assert.NoError(t, err)
+	assert.EqualValues(t, bn, content)
+}
+
+func TestZstd_Close(t *testing.T) {
+	fn := "testdata/notempty.txt.zst"
 	a, err := New(fn)
 	require.NoError(t, err)
 	require.NotNil(t, a)

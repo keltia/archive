@@ -34,6 +34,7 @@ The module currently supports the following "archives":
 - zip files
 - GPG files (either .asc or .gpg)
 - Tar files
+- Zstd files (one file per stream, only first stream)
 
 SYNOPSIS
 ``` go
