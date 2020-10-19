@@ -1,7 +1,14 @@
 language: go
 go:
 - "1.12.x"
+  arch: amd64
+- "1.12.x"
+  arch: ppc64le
 - master
+  arch: amd64
+- master
+  arch: ppc64le
+  
 matrix:
   allow_failures:
     - go: master
